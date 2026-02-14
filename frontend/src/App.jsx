@@ -201,45 +201,84 @@ export default function App() {
     return "neutral";
   }, [inference]);
 
+  const signalText = inference?.signal_state?.value || "UNKNOWN";
+  const countdownValue =
+    inference?.timer_value?.value === null || inference?.timer_value?.value === undefined
+      ? "N/A"
+      : `${inference.timer_value.value}s`;
+
   return (
-    <main className="app">
-      <h1>Lensley</h1>
-      <p className="subtitle">Crosswalk and pedestrian signal assist with confidence scoring.</p>
+    <main className="app-shell">
+      <canvas ref={canvasRef} className="hidden-canvas" />
 
-      <section className="video-panel">
-        <video ref={videoRef} autoPlay playsInline muted className="video" />
-        <canvas ref={canvasRef} className="hidden-canvas" />
-      </section>
+      <header className="topbar">
+        <div>
+          <p className="eyebrow">Assistive Vision</p>
+          <h1>Lensley</h1>
+          <p className="subtitle">Real-time crosswalk, signal, and countdown awareness.</p>
+        </div>
+        <div className={`signal-pill ${statusColor}`}>
+          <span className="signal-dot" />
+          {signalText}
+        </div>
+      </header>
 
-      <section className={`results ${statusColor}`}>
-        <div>
-          <strong>Crosswalk:</strong> {inference?.is_crosswalk?.value ? "Detected" : "Not detected"} (
-          {formatConfidence(inference?.is_crosswalk?.conf)})
-        </div>
-        <div>
-          <strong>Signal:</strong> {inference?.signal_state?.value || "UNKNOWN"} (
-          {formatConfidence(inference?.signal_state?.conf)})
-        </div>
-        <div>
-          <strong>Timer:</strong> {inference?.has_timer?.value ? "Detected" : "Not detected"} (
-          {formatConfidence(inference?.has_timer?.conf)})
-        </div>
-        <div>
-          <strong>Countdown:</strong>{" "}
-          {inference?.timer_value?.value === null || inference?.timer_value?.value === undefined
-            ? "N/A"
-            : inference.timer_value.value}
-          s ({formatConfidence(inference?.timer_value?.conf)})
-        </div>
-      </section>
+      <section className="dashboard-grid">
+        <article className="panel camera-panel">
+          <div className="panel-header">
+            <h2>Live Camera</h2>
+            <span className={`chip ${running ? "active" : "inactive"}`}>
+              {running ? "Active" : "Not active"}
+            </span>
+          </div>
+          <div className="video-frame">
+            <video ref={videoRef} autoPlay playsInline muted className="video" />
+          </div>
+        </article>
 
-      <section className="system">
-        <div>
-          <strong>Camera:</strong> {running ? "Active" : "Not active"}
-        </div>
-        <div>
-          <strong>TTS Engine:</strong> {ELEVENLABS_KEY ? "ElevenLabs" : "Browser fallback"}
-        </div>
+        <article className={`panel status-panel ${statusColor}`}>
+          <div className="panel-header">
+            <h2>Scene Analysis</h2>
+            <span className="chip muted">Updated ~450ms</span>
+          </div>
+
+          <div className="metric-grid">
+            <div className="metric-card">
+              <p className="metric-label">Crosswalk</p>
+              <p className="metric-value">{inference?.is_crosswalk?.value ? "Detected" : "Not detected"}</p>
+              <p className="metric-sub">Confidence {formatConfidence(inference?.is_crosswalk?.conf)}</p>
+            </div>
+
+            <div className="metric-card">
+              <p className="metric-label">Signal</p>
+              <p className="metric-value">{signalText}</p>
+              <p className="metric-sub">Confidence {formatConfidence(inference?.signal_state?.conf)}</p>
+            </div>
+
+            <div className="metric-card">
+              <p className="metric-label">Timer</p>
+              <p className="metric-value">{inference?.has_timer?.value ? "Detected" : "Not detected"}</p>
+              <p className="metric-sub">Confidence {formatConfidence(inference?.has_timer?.conf)}</p>
+            </div>
+
+            <div className="metric-card">
+              <p className="metric-label">Countdown</p>
+              <p className="metric-value">{countdownValue}</p>
+              <p className="metric-sub">Confidence {formatConfidence(inference?.timer_value?.conf)}</p>
+            </div>
+          </div>
+
+          <div className="system-row">
+            <div className="system-item">
+              <span>Backend</span>
+              <strong>Connected</strong>
+            </div>
+            <div className="system-item">
+              <span>TTS</span>
+              <strong>{ELEVENLABS_KEY ? "ElevenLabs" : "Browser fallback"}</strong>
+            </div>
+          </div>
+        </article>
       </section>
 
       {error && <p className="error">{error}</p>}
