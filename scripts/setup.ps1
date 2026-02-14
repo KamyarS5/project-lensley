@@ -3,16 +3,17 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $backend = Join-Path $root "backend"
 $frontend = Join-Path $root "frontend"
+$backendVenvPython = Join-Path $backend ".venv\Scripts\python.exe"
 
 Write-Host "[1/3] Setting up backend virtual environment..."
-Set-Location $backend
-if (-not (Test-Path ".venv\Scripts\python.exe")) {
+if (-not (Test-Path $backendVenvPython)) {
+  Set-Location $backend
   py -m venv .venv
 }
 
 Write-Host "[2/3] Installing backend dependencies..."
-& ".\.venv\Scripts\python.exe" -m pip install --upgrade pip
-& ".\.venv\Scripts\python.exe" -m pip install -r requirements.txt
+& $backendVenvPython -m pip install --upgrade pip
+& $backendVenvPython -m pip install -r (Join-Path $backend "requirements.txt")
 
 Write-Host "[3/3] Installing frontend dependencies..."
 Set-Location $frontend

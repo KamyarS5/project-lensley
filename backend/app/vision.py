@@ -97,7 +97,10 @@ def _read_timer_digits(gray: np.ndarray) -> tuple[int | None, float]:
     _, bw = cv2.threshold(scaled, 140, 255, cv2.THRESH_BINARY)
     config = "--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789"
 
-    text = pytesseract.image_to_string(bw, config=config)
+    try:
+        text = pytesseract.image_to_string(bw, config=config)
+    except Exception:
+        return None, 0.1
     match = re.search(r"\b(\d{1,2})\b", text)
     if not match:
         return None, 0.25
