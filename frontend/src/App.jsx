@@ -102,6 +102,7 @@ export default function App() {
 
   useEffect(() => {
     let stream;
+    let cancelled = false;
 
     async function startCamera() {
       try {
@@ -109,19 +110,42 @@ export default function App() {
           video: { facingMode: "environment" },
           audio: false,
         });
+        if (cancelled) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
+          const videoEl = videoRef.current;
+          videoEl.srcObject = stream;
+          try {
+            await videoEl.play();
+          } catch (playErr) {
+            const message = playErr?.message || "";
+            const benignPlayInterruption =
+              playErr?.name === "AbortError" ||
+              message.includes("interrupted by a new load request") ||
+              message.includes("The play() request was interrupted");
+
+            if (!benignPlayInterruption) {
+              throw playErr;
+            }
+          }
+
+          if (cancelled) return;
           setRunning(true);
         }
       } catch (e) {
-        setError(`Camera access failed: ${e.message}`);
+        if (!cancelled) {
+          setError(`Camera access failed: ${e.message}`);
+        }
       }
     }
 
     startCamera();
 
     return () => {
+      cancelled = true;
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
