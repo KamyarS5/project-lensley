@@ -1,8 +1,9 @@
 from pydantic import BaseModel
+from typing import Optional, Union
 
 
 class DetectionValue(BaseModel):
-    value: bool | str | int | None
+    value: Optional[Union[bool, str, int]]
     conf: float
 
 

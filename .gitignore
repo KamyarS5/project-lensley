@@ -32,6 +32,7 @@ backend/.env.*
 
 # Node / frontend
 frontend/node_modules/
+**/node_modules/
 frontend/dist/
 frontend/.vite/
 frontend/.env
